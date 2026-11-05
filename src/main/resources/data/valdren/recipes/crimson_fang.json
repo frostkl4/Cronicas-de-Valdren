@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " E ",
+    " R ",
+    " S "
+  ],
+  "key": {
+    "E": {
+      "item": "valdren:shadow_essence"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "valdren:crimson_fang"
+  }
+}

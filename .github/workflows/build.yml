@@ -1,0 +1,61 @@
+name: Build Cronicas de Valdren
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Funciona dos dois jeitos: com o projeto solto no repositório
+      # ou com o ZIP (cronicas-de-valdren.zip) enviado pelo celular.
+      - name: Preparar projeto
+        run: |
+          for z in *.zip; do
+            if [ -f "$z" ]; then
+              unzip -q -o "$z"
+            fi
+          done
+          if [ -f valdren/build.gradle ]; then
+            echo "PROJ=valdren" >> "$GITHUB_ENV"
+          else
+            echo "PROJ=." >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.8'
+
+      - name: Build
+        working-directory: ${{ env.PROJ }}
+        run: gradle build --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cronicas-de-valdren
+          path: ${{ env.PROJ }}/build/libs/*.jar
+
+      - name: Remove previous release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete valdren-latest --cleanup-tag -y -R ${{ github.repository }} || true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: valdren-latest
+          name: Crônicas de Valdren (build mais recente)
+          body: "Mod para Forge 1.20.1. Baixe o .jar abaixo e coloque na pasta mods (Epic Fight é opcional, mas recomendado)."
+          files: ${{ env.PROJ }}/build/libs/valdren-*.jar
+          make_latest: true

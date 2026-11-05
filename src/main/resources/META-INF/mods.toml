@@ -1,0 +1,36 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="valdren"
+version="0.1.0"
+displayName="Crônicas de Valdren"
+authors="frostkl4"
+description='''
+Viajantes com falas, missões e afinidade que visitam as vilas em horários próprios,
+criaturas novas, dois chefes (Cavaleiro Sem Luz e Vorthrax, o Dragão da Tempestade),
+oito espadas e um guia no estilo do livro do Minecraft.
+Compatível com Epic Fight (movesets das espadas e golpes animados dos inimigos humanoides).
+'''
+
+[[dependencies.valdren]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.valdren]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.20.2)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.valdren]]
+    modId="epicfight"
+    mandatory=false
+    versionRange="[20,)"
+    ordering="AFTER"
+    side="BOTH"

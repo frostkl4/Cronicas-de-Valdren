@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "valdren:echo_fragment"
+    },
+    {
+      "item": "valdren:echo_fragment"
+    },
+    {
+      "item": "valdren:echo_fragment"
+    },
+    {
+      "item": "valdren:echo_fragment"
+    },
+    {
+      "item": "valdren:shadow_essence"
+    },
+    {
+      "item": "valdren:shadow_essence"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "result": {
+    "item": "valdren:broken_seal"
+  }
+}
