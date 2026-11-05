@@ -156,9 +156,8 @@ def main(only=None):
     jobs = {
         "knight": lambda: emit(B.knight_model(), B.KNIGHT_MATS, "LightlessKnightModel", B.KNIGHT_PARTS, B.KNIGHT_ANIM,
                                hum, True, source="v2_bosses.py"),
-        "dragon": lambda: emit(B.dragon_model(), B.DRAGON_MATS, "StormDragonModel", B.DRAGON_PARTS, B.DRAGON_ANIM,
-                               [(35, 22, B.DRAGON_POSE_GROUND), (-30, 35, B.DRAGON_POSE_FLY),
-                                (150, 25, B.DRAGON_POSE_GROUND)], False, entity="StormDragon", pkg="boss"),
+        # o dragão agora é o v4 (build_v4.py); o v2 continua em v2_bosses.py só como histórico
+        "dragon": lambda: __import__("build_v4").main(),
         "bram": lambda: emit(N.bram_model(), N.BRAM_MATS, "BramModel", N.BRAM_PARTS, N.BRAM_ANIM, hum, True,
                              source="v2_npcs.py", tex_name="npc/bram"),
         "iara": lambda: emit(N.iara_model(), N.IARA_MATS, "IaraModel", N.IARA_PARTS, N.IARA_ANIM, hum, True,

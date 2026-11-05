@@ -220,7 +220,7 @@ class Model:
         return "\n".join(decl), "\n".join(assign)
 
     # ----------------------------------------------------------- previa
-    def preview(self, tex, size=420, yaw=35, pitch=20, pose=None, scale=None, bg=(34, 36, 44)):
+    def preview(self, tex, size=420, yaw=35, pitch=20, pose=None, scale=None, bg=(34, 36, 44), lit=False):
         """Renderiza o modelo com a textura. pose: dict nome -> (rx, ry, rz) somados."""
         pose = pose or {}
         quads = []
@@ -291,11 +291,21 @@ class Model:
         dr = ImageDraw.Draw(img)
         shade = {"top": 1.0, "bottom": .55, "north": .86, "south": .74, "west": .8, "east": .8}
         proj.sort(key=lambda q: sum(p[2] for p in q[0]) / 4.0, reverse=False)
+        L = (-0.35, 0.72, 0.6)
+        ln = math.sqrt(sum(a * a for a in L))
+        L = tuple(a / ln for a in L)
         for pts, col, face, nrm in proj:
             if nrm[2] < -1e-6:  # face de costas para a camera
                 continue
-            f = shade[face]
-            c = (int(col[0] * f), int(col[1] * f), int(col[2] * f))
+            if lit == "flat":
+                f = 1.0
+            elif lit:
+                nl = math.sqrt(sum(a * a for a in nrm)) or 1.0
+                d_ = sum(nrm[k] * L[k] for k in range(3)) / nl
+                f = 0.56 + 0.5 * max(0.0, d_) + 0.12 * max(0.0, -d_)
+            else:
+                f = shade[face]
+            c = (min(255, int(col[0] * f)), min(255, int(col[1] * f)), min(255, int(col[2] * f)))
             poly = [((p[0] - cx_) * sc + size / 2, size / 2 - (p[1] - cy_) * sc) for p in pts]
             dr.polygon(poly, fill=c)
         return img

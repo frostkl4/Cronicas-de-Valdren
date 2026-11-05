@@ -9,6 +9,7 @@ import com.frostkl4.valdren.entity.mob.FrostWraith;
 import com.frostkl4.valdren.entity.mob.ShadowWolf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -59,6 +60,16 @@ public final class CreatureRenderers {
         protected void setupRotations(StormDragon entity, PoseStack poseStack, float ageInTicks, float rotationYaw,
                                       float partialTick) {
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - rotationYaw));
+        }
+
+        /** As asas abertas passam muito da caixa de colisão: amplia só a área usada para decidir se desenha. */
+        @Override
+        public boolean shouldRender(StormDragon entity, Frustum frustum, double camX, double camY, double camZ) {
+            if (super.shouldRender(entity, frustum, camX, camY, camZ)) {
+                return true;
+            }
+            return entity.shouldRender(camX, camY, camZ)
+                    && frustum.isVisible(entity.getBoundingBox().inflate(6.5D, 4.0D, 6.5D));
         }
 
         @Override
