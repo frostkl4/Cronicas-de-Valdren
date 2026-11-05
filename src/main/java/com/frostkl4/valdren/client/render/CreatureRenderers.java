@@ -8,6 +8,7 @@ import com.frostkl4.valdren.entity.boss.StormDragon;
 import com.frostkl4.valdren.entity.mob.FrostWraith;
 import com.frostkl4.valdren.entity.mob.ShadowWolf;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -49,13 +50,15 @@ public final class CreatureRenderers {
         private static final ResourceLocation TEX = Valdren.id("textures/entity/storm_dragon.png");
 
         public Dragon(EntityRendererProvider.Context ctx) {
-            super(ctx, new StormDragonModel(ctx.bakeLayer(StormDragonModel.LAYER)), 2.5F);
+            super(ctx, new StormDragonModel(ctx.bakeLayer(StormDragonModel.LAYER)), 3.0F);
             this.addLayer(new GlowLayer<>(this, Valdren.id("textures/entity/storm_dragon_glow.png")));
         }
 
+        /** Sem o tombo de lado padrão ao morrer: a queda do dragão é animada no próprio modelo. */
         @Override
-        protected void scale(StormDragon entity, PoseStack poseStack, float partialTick) {
-            poseStack.scale(2.0F, 2.0F, 2.0F);
+        protected void setupRotations(StormDragon entity, PoseStack poseStack, float ageInTicks, float rotationYaw,
+                                      float partialTick) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - rotationYaw));
         }
 
         @Override

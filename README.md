@@ -49,9 +49,11 @@ Antigo, Lâmina do Crepúsculo, Chama Ancestral, Grande Espada do Sentinela, Kat
 
 - `src/main/java/com/frostkl4/valdren/`: código (NPCs, conversa, missões, criaturas, chefes, itens, tela)
 - `src/main/resources/`: texturas, idiomas (`pt_br` e `en_us`), receitas, loot, spawns, Epic Fight
-- `tools/gen/`: geradores em Python dos modelos, texturas e textos (`python3 build_models.py`, `build_skins.py`,
-  `build_items.py`, `build_data.py`, e `check.py` para conferir tudo)
-- `tools/models/*.bbmodel`: modelos das criaturas para abrir no Blockbench
+- `tools/gen/`: geradores em Python. `build_v2.py` gera modelos 3D, texturas e animações de todos os personagens
+  (geometria em `v2_bosses.py`, `v2_npcs.py`, `v2_creatures.py`; pintura em `stylepaint.py`); `build_skins.py` gera as
+  skins no formato de jogador usadas pelo Epic Fight; `build_items.py` os ícones; `build_data.py` textos e JSONs;
+  `check.py` confere tudo
+- `tools/models/*.bbmodel`: modelos de todos os personagens para abrir no Blockbench
 - `docs/preview/`: prévias das texturas e modelos
 
 Para compilar pelo celular, veja `COMO_COMPILAR.md`.

@@ -1,4 +1,4 @@
-"""Gera as skins humanoides e uma previa de cada uma."""
+"""Gera as skins 64x64 (formato de jogador) do Saqueador e do Cavaleiro usadas quando o Epic Fight desenha esses mobs."""
 import os
 
 from PIL import Image
@@ -30,19 +30,19 @@ def main():
     os.makedirs(os.path.join(TEX, "npc"), exist_ok=True)
     os.makedirs(PREV, exist_ok=True)
     pm = player_model()
-    jobs = [(name, fn(), None) for name, fn in skins.ALL.items()]
+    # Só as skins no formato de jogador usadas pelo Epic Fight (os NPCs agora têm modelo próprio, ver build_v2.py)
+    jobs = [("crimson_raider", skins.raider(), None)]
     kspec, kglow = skins.knight()
     jobs.append(("lightless_knight", kspec, kglow))
     sheet = Image.new("RGB", (240 * len(jobs), 480), (34, 36, 44))
     for k, (name, spec, glow) in enumerate(jobs):
         img, gimg = skins.paint(spec, seed=k + 1, glow_spec=glow)
         img.save(os.path.join(TEX, name + ".png"))
-        if gimg is not None:
-            gimg.save(os.path.join(TEX, name + "_glow.png"))
+        # (o Epic Fight não usa camada de brilho)
         sheet.paste(pm.preview(img, size=240, yaw=25, pitch=8), (240 * k, 0))
         sheet.paste(pm.preview(img, size=240, yaw=200, pitch=8), (240 * k, 240))
         print("ok", name)
-    sheet.save(os.path.join(PREV, "humanoids.png"))
+    sheet.save(os.path.join(PREV, "epicfight_skins.png"))
 
 
 if __name__ == "__main__":

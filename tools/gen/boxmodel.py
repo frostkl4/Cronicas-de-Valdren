@@ -146,7 +146,7 @@ class Model:
         px = img.load()
         gx = gimg.load() if glow else None
         for part, c in self.cubes():
-            fn = painters[c.mat]
+            fn = painters if callable(painters) else painters[c.mat]
             ap = part.abs_pivot()
             for face in FACES:
                 u, v, fw, fh = c.region(face)
