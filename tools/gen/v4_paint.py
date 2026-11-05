@@ -69,14 +69,14 @@ def _raster(cells, a, b):
 
 def _bolt(rng, cells, p, ang, budget, depth=0):
     while budget > 0:
-        ln = rng.uniform(1.5, 3.5)
-        a = ang + rng.uniform(-0.85, 0.85)
+        ln = rng.uniform(1.2, 3.0)
+        a = ang + rng.uniform(-0.9, 0.9)
         q = (p[0] + math.cos(a) * ln, p[1] + math.sin(a) * ln)
         _raster(cells, p, q)
         p = q
         budget -= ln
         if depth < 2 and rng.random() < 0.22:
-            _bolt(rng, cells, p, ang + rng.choice((-1, 1)) * rng.uniform(0.5, 1.1), budget * 0.45, depth + 1)
+            _bolt(rng, cells, p, ang + rng.choice((-1, 1)) * rng.uniform(0.5, 1.2), budget * 0.5, depth + 1)
 
 
 def panel_info(key, right):
@@ -95,20 +95,25 @@ def panel_info(key, right):
     rng = random.Random(f"{key}-{right}")
     bolts, cracks = set(), set()
     area = sum((b - a) * (d - c) for a, b, c, d in rects)
-    for _ in range(1 + int(area / 260)):
+    for _ in range(1 + int(area / 520)):
         sx = rng.uniform(x0 + 2, x1 - 3)
         _bolt(rng, bolts, (sx, z0 + rng.uniform(0.5, 3.0)), math.pi / 2 + rng.uniform(-0.8, 0.8),
-              rng.uniform(0.55, 0.95) * (z1 - z0))
-    for _ in range(2 + int(area / 220)):
+              rng.uniform(0.7, 1.1) * (z1 - z0))
+    for _ in range(1 + int(area / 300)):
         sx = rng.uniform(x0, x1)
         _bolt(rng, cracks, (sx, rng.uniform(z0, z1)), rng.uniform(0, math.tau), rng.uniform(5, 12), depth=2)
-    halo = set()
+    halo, sparks = set(), set()
     for (x, z) in bolts:
         for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             if (x + dx, z + dz) not in bolts:
                 halo.add((x + dx, z + dz))
+        for dx in (-3, -2, 2, 3):
+            for dz in (-3, -2, 2, 3):
+                cell = (x + dx, z + dz)
+                if cell not in bolts and rng.random() < 0.012:
+                    sparks.add(cell)
     info = {"x0": x0, "x1": x1, "z0": z0, "z1": z1, "bolts": bolts, "halo": halo, "cracks": cracks,
-            "depth": depth, "seed": len(key) * 7 + (3 if right else 0)}
+            "sparks": sparks, "depth": depth, "seed": len(key) * 7 + (3 if right else 0)}
     _CACHE[k] = info
     return info
 
@@ -127,27 +132,31 @@ def paint_memb(c):
         return col, None
     zn = (z - info["z0"]) / max(1.0, info["z1"] - info["z0"])
     s = info["seed"]
-    t = 0.8 - 0.3 * zn + (fbm(x, z, 0, s=8.0, seed=s) - 0.5) * 0.3
-    frost = fbm(x + 40, z, 0, s=5.0, seed=s + 5)
-    if frost > 0.63:
-        t += 0.16 + (0.1 if frost > 0.72 else 0)
-    t += (h01(cx, cz, s, 3) - 0.5) * 0.06
+    t = 0.8 - 0.3 * zn + (fbm(x, z, 0, s=9.0, seed=s) - 0.5) * 0.24
+    frost = fbm(x + 40, z, 0, s=6.0, seed=s + 5)
+    if frost > 0.6:
+        t += 0.12 + (0.1 if frost > 0.68 else 0) + (0.08 if frost > 0.75 else 0)
+    t += (h01(cx, cz, s, 3) - 0.5) * 0.04
     d = info["depth"].get(cx, 0)
-    if d and z > d - 1.0:
+    if d and z > d - 1.0 and not tag.get("layer"):
         t = max(t, 0.86)
+    if tag.get("layer"):
+        t += 0.04
     if c.face == "bottom":
         t -= 0.08
     glow = None
+    col = pick(MEMB, t)
     if (cx, cz) in info["cracks"] and (cx, cz) not in info["bolts"]:
-        col = (14, 38, 72)
-    else:
-        col = pick(MEMB, t)
+        col = (16, 42, 78)
     if (cx, cz) in info["bolts"]:
         col = (255, 255, 255)
         glow = (225, 248, 255)
     elif (cx, cz) in info["halo"]:
-        col = (150, 220, 250) if c.face == "top" else (120, 196, 236)
-        glow = (40, 104, 150)
+        col = tuple(int(v * 0.7 + w * 0.3) for v, w in zip(col, (176, 234, 255)))
+        glow = (26, 70, 104)
+    elif (cx, cz) in info["sparks"]:
+        col = (196, 240, 255)
+        glow = (90, 170, 210)
     return col, glow
 
 

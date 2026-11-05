@@ -29,7 +29,7 @@ def render(m, tex, gfull, size, yaw, pitch, pose, scale=None, glow=True):
     out.paste(im, (0, 0), mask)
     if glow:
         g = m.preview(gfull, size=size, yaw=yaw, pitch=pitch, pose=pose, bg=(0, 0, 0), lit="flat", scale=scale)
-        out = ImageChops.add(out, g.filter(ImageFilter.GaussianBlur(size / 90)))
+        out = ImageChops.add(out, Image.eval(g.filter(ImageFilter.GaussianBlur(size / 90)), lambda v: int(v * 0.75)))
         out = ImageChops.add(out, Image.eval(g.filter(ImageFilter.GaussianBlur(size / 30)), lambda v: int(v * 0.45)))
         out = ImageChops.lighter(out, g)
     return out

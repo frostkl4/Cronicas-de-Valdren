@@ -66,10 +66,20 @@ def _h(*a):
     return (n & 0xFFFF) / 65536.0
 
 
-def strips(parts, key, depth_fn, xmax, y, z0=1.0, width=2, ragged=0.16):
+def strips(parts, key, depth_fn, xmax, y, z0=1.0, width=2, ragged=0.16, layer=True):
     """Membrana em tiras de `width` ao longo de X; depth_fn(xc) dá a profundidade (Z) de cada tira.
-    parts: [(x_inicio, parte)]: cada tira vai para a última parte cujo início <= x (ponta do dedo dobrável)."""
+    parts: [(x_inicio, parte)]: cada tira vai para a última parte cujo início <= x (ponta do dedo dobrável).
+    layer: camadas extras (uma em cima, outra embaixo) perto do osso, em blocos de 4, para a membrana
+    ficar mais grossa junto do osso e afinar em degraus até a borda."""
     rects = MEMB_PANELS.setdefault(key, [])
+
+    def part_at(x):
+        ox, part = parts[0]
+        for (sx, sp) in parts:
+            if x >= sx - 1e-6:
+                ox, part = sx, sp
+        return ox, part
+
     x = 0
     k = 0
     while x < xmax - 0.01:
@@ -81,14 +91,29 @@ def strips(parts, key, depth_fn, xmax, y, z0=1.0, width=2, ragged=0.16):
             d += -2 if r < ragged * 0.5 else (-1 if r < ragged else (1 if r > 0.85 else 0))
         d = int(round(d - z0))
         if d >= 1:
-            ox, part = parts[0]
-            for (sx, sp) in parts:
-                if x >= sx - 1e-6:
-                    ox, part = sx, sp
+            ox, part = part_at(x)
             part.cube(x - ox, y, z0, w, 1, d, "memb", tag={"memb": key, "ox": ox})
             rects.append((x, x + w, z0, z0 + d))
         x += w
         k += 1
+    if not layer:
+        return
+    x = 0
+    while x < xmax - 2.01:
+        ox, part = part_at(x)
+        if part is not parts[0][1]:
+            break
+        w = min(4, int(math.floor(xmax - x)))
+        if len(parts) > 1 and x + w > parts[1][0]:
+            w = int(parts[1][0] - x)
+        if w < 2:
+            break
+        d = min(depth_fn(x + 0.5), depth_fn(x + w - 0.5)) - z0
+        top = int(round(d * 0.42))
+        if top >= 3:
+            part.cube(x - ox, y - 1, z0, w, 1, top, "memb", tag={"memb": key, "ox": ox, "layer": 1})
+            part.cube(x - ox, y + 1, z0, w, 1, max(2, top - 2), "memb", tag={"memb": key, "ox": ox, "layer": 2})
+        x += w
 
 
 def fan_depth(L0, L1, gap, scallop):
@@ -240,24 +265,25 @@ def build():
 
     # ---------------- asas enormes: ossos grossos brancos + membranas em tiras
     wl = body.add(Part("wing_l", (6, -9, -10)))
-    wl.cube(-2, -3, -3, 6, 6, 6, "ice")
-    wl.cube(2, -2, -2, 22, 4, 4, "bone")
-    wl.cube(4, -3, -1, 18, 1, 2, "bone")
-    ice_spike(wl, "wing_l_hs0", 8, -3, 0, 1, 3, lean=-0.7)
-    ice_spike(wl, "wing_l_hs1", 15, -3, 0, 1, 3, lean=-0.7)
+    wl.cube(-2.5, -3.5, -3.5, 7, 7, 7, "ice")
+    wl.cube(2, -2.5, -2.5, 22, 5, 5, "bone")
+    wl.cube(4, -3.5, -1.5, 18, 1, 3, "bone")
+    wl.cube(20, -3, -3, 4, 6, 6, "bone")
+    ice_spike(wl, "wing_l_hs0", 8, -3.5, 0, 1, 3, lean=-0.7)
+    ice_spike(wl, "wing_l_hs1", 15, -3.5, 0, 1, 3, lean=-0.7)
     strips([(0, wl)], "wing_l_in",
            lambda xc: 27 * (1 - xc / 24) + 23 * (xc / 24) - 5 * math.sin(math.pi * xc / 24), 24, -0.6, z0=1.0)
 
     fore = wl.add(Part("wing_l_fore", (24, 0, 0)))
-    fore.cube(-2.5, -2.5, -2.5, 5, 5, 5, "bone")
-    fore.cube(2, -1.5, -1.5, 28, 3, 3, "bone")
-    fore.cube(4, -2.5, -1, 24, 1, 2, "bone")
-    ice_spike(fore, "wing_l_elbow", 0, -2.5, 0, 2, 4, lean=-0.9)
+    fore.cube(-3, -3, -3, 6, 6, 6, "bone")
+    fore.cube(2, -2, -2, 28, 4, 4, "bone")
+    fore.cube(4, -3, -1, 24, 1, 2, "bone")
+    ice_spike(fore, "wing_l_elbow", 0, -3, 0, 2, 4, lean=-0.9)
     strips([(0, fore)], "wing_l_fore",
            lambda xc: 23 + 3 * xc / 30 - 5 * math.sin(math.pi * xc / 30), 30, -0.4, z0=1.0)
 
     wrist = fore.add(Part("wing_l_wrist", (30, 0, 0)))
-    wrist.cube(-2, -2, -2, 4, 4, 4, "bone")
+    wrist.cube(-2.5, -2.5, -2.5, 5, 5, 5, "bone")
     chain2(wrist, "wing_l_thumb", (0, -1, -2), (-0.35, -0.5, 0),
            [(2, 3, (-0.3, 0, 0)), (2, 3, (-0.5, 0, 0)), (1, 3, None)], ["bone", "claw", "claw"], axis="-z")
     fingers = [(-0.05, 30), (-0.6, 34), (-1.15, 28), (-1.7, 20)]
@@ -265,10 +291,11 @@ def build():
         f = wrist.add(Part(f"wing_l_f{k}", (0.5, 0, 0), (0, yaw, 0)))
         a = int(ln * 0.55)
         b = ln - a
-        f.cube(0, -1.5, -1.5, 3, 3, 3, "bone")
-        f.cube(3, -1, -1, a, 2, 2, "bone")
+        f.cube(0, -2, -2, 4, 4, 4, "bone")
+        f.cube(3, -1.5, -1.5, a, 3, 3, "bone")
         tip = f.add(Part(f"wing_l_f{k}_tip", (3 + a, 0, 0)))
-        tip.cube(-0.5, -1, -1, b + 1, 2, 2, "bone")
+        tip.cube(-1, -1.5, -1.5, 2, 3, 3, "bone")
+        tip.cube(0.5, -1, -1, b, 2, 2, "bone")
         if k == 0:
             tip.cube(b, -1, -1, 4, 2, 2, "claw")
             tip.cube(b + 4, -0.5, -0.5, 3, 1, 1, "claw")
